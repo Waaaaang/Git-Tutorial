@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+  <mapper namespace="com.spm.mapper.GoodsMapper">
+  <sql id="criteria">
+     <trim prefix="(" suffix=") AND " prefixOverrides="OR">
+     	<foreach item='type' collection="typeArr">
+     		<trim prefix="OR">
+     			<choose>	<!-- if ~ else  -->
+     				<when test="type == 'T'.toString()">
+     					gdsName like '%'||#{keyword}||'%'
+     				</when>
+     				<when test="type == 'C'.toString()">
+     					gdsDes like '%'||#{keyword}||'%'
+     				</when>
+     				<when test="type == 'W'.toString()">
+     					gdsPrice like '%'||#{keyword}||'%'
+     				</when>
+     			</choose>
+     		</trim>
+     	</foreach>
+     </trim>
+  </sql>
+  <!-- 상품 목록 -->
+  	<select id="getList" resultType="com.spm.vo.GoodsVO">
+  	 	<![CDATA[
+  		select gdsNo,gdsName,cateCode,gdsPrice,gdsDes,gdsImg,firstRegDate,firstRegId from (select /*+INDEX_DESC(goods pk_goods) */ rownum rn,gdsNo,gdsName,cateCode,gdsPrice,gdsDes,gdsImg,firstRegDate,firstRegId from goods where
+  		]]>   
+ 		<include refid="criteria"></include>
+ 	    <![CDATA[  
+  	    rownum <= #{pageNum} * #{amount} ) where rn > (#{pageNum} -1)*#{amount}
+		]]>
+  	</select>
+  
+  <!-- 상품 등록 -->
+  	<insert id="insert">
+  		insert into goods(gdsNo, gdsName, cateCode, gdsPrice, gdsDes, gdsImg, firstRegDate, firstRegId) 
+  		 values (goods_seq.nextval, #{gdsName}, #{cateCode}, #{gdsPrice}, #{gdsDes}, #{gdsImg}, sysdate, #{mberId})
+  	</insert>
+  	
+  <!-- 상품 상세 -->
+  	<select id="detail" resultType="com.spm.vo.GoodsVO">
+  		select * from goods where gdsNo = #{gdsNo}
+  	</select>
+  
+  <!-- 상품 삭제 -->
+  	<delete id="delete">
+  		delete from goods where gdsNo =#{gdsNo}
+  	</delete>
+  	
+  	<!-- 상품 수정 -->
+  	<update id="update">
+  		update goods set gdsName=#{gdsName}, gdsPrice=#{gdsPrice}, gdsDes=#{gdsDes}, gdsImg=#{gdsImg}
+  		, lastRegDate=sysdate, lastRegId=#{mberId} where gdsNo= #{gdsNo}
+  	</update>
+  	
+  	<!-- 총 상품 수 -->
+  	<select id="getTotal" resultType="int">
+  		select count(*) as totalCount from goods where
+  		<include refid="criteria"></include>
+  		gdsNo > 0
+  	</select>
+  	
+  	<!-- 카테고리 -->
+  	<select id="category" resultType="com.spm.vo.CategoryVO">
+  		select level, cateName, cateCode, cateCodeRef from goods_category start with cateCodeRef is null connect by prior cateCode = cateCodeRef
+  	</select>
+  	
+  	<!-- 카트담기 -->
+  	<insert id="addCart">
+  		insert into tb_cart (cartNo,mberId,gdsNo,cartStock) values (tb_cart_seq.nextval, #{mberId}, #{gdsNo}, #{cartStock})
+  	</insert>
+  	
+  	<!-- 장바구니 리스트 -->
+  	<select id="cartList" resultType="com.spm.vo.CartVO">
+ 		select row_number() over(order by c.cartNo desc) as num, c.cartNo, c.mberId, c.gdsNo, c.cartStock, c.addDate,
+ 		 g.gdsName, g.gdsPrice, g.gdsImg from tb_cart c inner join goods g on c.gdsNo = g.gdsNo where c.mberId = #{userId}
+  	</select>
+  	
+  	<!-- 카트목록삭제 -->
+  	<delete id="deleteCart" >
+  		delete from tb_cart where cartNo = #{cartNo} and mberId =#{mberId}
+  	</delete>
+  	
+  	<!-- 카테고리별 리스트 -->  
+	<select id="categoryList" resultType="com.spm.vo.GoodsVO">
+		 select gdsNo,g.gdsName, g.catecode,c.catecodeRef, gdsPrice,gdsDes, gdsImg from goods g inner join goods_category c 
+		 on g.catecode = c.catecode where g.catecode = #{cateCode} or c.catecodeRef = #{cateCode} order by gdsNo desc 
+	</select>
+
+<!--   	<!  카테고리별 리스트 -->  
+<!-- 	<select id="categoryList" resultType="com.spm.vo.GoodsVO"> -->
+<!-- 		select T.* from ( select gdsNo,g.gdsName, g.catecode,c.catecodeRef, gdsPrice,gdsDes, gdsImg, row_number() OVER(order by gdsNo desc) AS rn  -->
+<!-- 		 from goods g inner join goods_category c on g.catecode = c.catecode where g.catecode = #{cateCode} or c.catecodeRef = #{cateCode}) T  where  -->
+<!-- 		<![CDATA[ -->
+<!-- 		T.rn > (#{pageNum}-1)*#{amount} and T.rn <= #{pageNum} * #{amount}  -->
+<!-- 		]]> -->
+<!-- 	</select> -->
+
+	
+	<!--  카테고리별 수량 -->
+	<select id="categoryCount" resultType="int">
+		select count(*) from goods g inner join goods_category c on g.cateCode = c.cateCode where 
+		g.cateCode = #{cateCode} or c.catecodeRef = #{cateCode}
+	</select>
+	
+	<!-- 주문정보 -->
+	<insert id="orderInfo">
+		insert into oder(orderId,mberId,orderRec,addr1,detailAddr,orderPhone,amount) 
+		 values (#{orderId},#{mberId},#{orderRec},#{addr1},#{detailAddr},#{orderPhone},#{amount})
+	</insert>
+	
+	<!-- 주문상세정보 -->
+  	<insert id="orderInfo_Detail">
+  		insert into oder_detail(orderDetailNo,orderId,gdsNo,cartStock) 
+  		 select oder_detail_seq.nextval, #{orderId}, gdsNo, cartStock from tb_cart
+  	</insert>
+  	
+  	<!-- 주문후 카트비우기 -->
+  	<delete id="cartAllDelete">
+  		delete tb_cart where mberId = #{mberId}
+  	</delete>
+  	
+  	<!-- 유저의 주문 목록 -->
+  	<select id="orderList" resultType="com.spm.vo.OrderVO">
+  		select orderId, orderRec, addr1, detailAddr, orderPhone, amount , orderDate, delivery from oder where mberId = #{mberId} order by orderDate desc
+  	</select>
+  	
+  	<!-- 관지라가 유저의 주문 목록 -->
+  	<select id="adminList" resultType="com.spm.vo.OrderVO">
+  		<![CDATA[
+  		select orderId, mberId,orderRec, addr1, detailAddr, orderPhone, amount , orderDate, delivery from (select /*+INDEX_DESC(orderDate ) */ rownum rn,orderId, mberId,orderRec, addr1, detailAddr, orderPhone, amount , orderDate, delivery from oder where
+  		]]>   
+ 		<include refid="criteria"></include>
+ 	    <![CDATA[  
+  	    rownum <= #{pageNum} * #{amount} ) where rn > (#{pageNum} -1)*#{amount}
+		]]>
+  	</select>
+  	
+  	<!-- 총 주문 수 -->
+  	<select id="getOrderTotal" resultType="int">
+  		select count(*) from oder 
+  		<include refid="criteria"></include>
+  	</select>
+  	
+  	<!-- 주문한 상품번호에 따른 목록보기 -->
+  	<select id="orderView" resultType="com.spm.vo.OrderListVO">
+		   select o.orderId, o.mberId, o.orderRec, o.addr1, o.detailAddr, o.orderPhone, o.amount, o.orderDate, o.delivery,
+		    d.orderDetailNo, d.gdsNo, d.cartStock, g.gdsName, g.gdsImg, g.gdsPrice 
+		    from oder o inner join oder_detail d on o.orderId = d.orderId inner join goods g on d.gdsNo = g.gdsNo 
+		     where o.mberId = #{mberId} and o.orderId = #{orderId}
+  	</select>
+  	
+  	<!-- 배송 상태 -->
+  	<update id="delivery">
+  		update oder set delivery =#{delivery} where orderId = #{orderId}
+  	</update>
+  	 
+</mapper>
