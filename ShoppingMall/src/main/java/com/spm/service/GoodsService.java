@@ -3,12 +3,14 @@ package com.spm.service;
 import java.util.List;
 
 import com.spm.utils.Criteria;
+import com.spm.vo.AttachFileVO;
 import com.spm.vo.CartVO;
 import com.spm.vo.CategoryVO;
 import com.spm.vo.GoodsVO;
 import com.spm.vo.OrderDetailVO;
 import com.spm.vo.OrderListVO;
 import com.spm.vo.OrderVO;
+import com.spm.vo.ReplyVO;
 
 public interface GoodsService {
 
@@ -16,7 +18,7 @@ public interface GoodsService {
 		public List<GoodsVO> getList(Criteria cri);
 		
 		//상품 등록
-		public int insert(GoodsVO vo);
+		public boolean insert(GoodsVO vo);
 		
 		//상풍 삭제
 		public boolean delete(int gdsNo);
@@ -71,5 +73,17 @@ public interface GoodsService {
 		
 		//배송 상태
 		public int delivery(OrderVO vo);
-
+		
+		//배송 후 상품 수량 조절
+		public void changeStock(GoodsVO vo);
+		
+		//첨부된 사진 목록
+		public List<AttachFileVO> fileList(int gdsNo);
+		
+		//댓글 수
+		public int getReplyCnt(int gdsNo);
+		
+		//주문후 금액변화
+		public void pointUpdate(OrderVO vo);
+		
 }

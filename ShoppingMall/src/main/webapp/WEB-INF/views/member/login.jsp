@@ -4,13 +4,25 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>아이디 찾기</title>
+<title>로그인</title>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"> -->
 <style>
 .regBtn:hover {
 	color: white;
 	background-color: skyblue;
 }
+
+form {
+	
+	text-align: center;
+}
+table {
+	padding-top : 20%;
+	margin : auto;
+
+}
+
 </style>
 <body>
 	<form id="moveForm" onsubmit="return beforeValid();" name="moveForm" method="post">
@@ -29,8 +41,8 @@
 			<a href="/member/findPw">비밀번호찾기</a>
 		</span><br><br>
 		<div style="margin-left: 70px;">
-		<button type="submit">로그인</button>
-		<button type="button" class="regBtn" onclick="register();">회원가입</button>
+		<button type="submit" style="background-color: #337ab7; color: #fff; border-color: #2e6da4;">로그인</button>
+		<button type="button" style="color: #fff; background-color: #5cb85c; border-color: #4cae4c;" class="regBtn" onclick="register();">회원가입</button>
 		</div>
 	</form>
 </body>

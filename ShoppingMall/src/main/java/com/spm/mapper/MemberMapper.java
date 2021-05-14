@@ -33,4 +33,7 @@ public interface MemberMapper {
 	
 	//회원정보수정
 	public int updateMember(MemberVO vo);
+	
+	//충전
+	public int charge(MemberVO vo);
 }

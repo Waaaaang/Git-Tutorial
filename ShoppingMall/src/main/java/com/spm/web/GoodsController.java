@@ -3,38 +3,55 @@ package com.spm.web;
 import java.text.DecimalFormat;
 import java.util.Calendar;
 import java.util.List;
+import java.util.UUID;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
+import com.ccm.mapper.CmmnCodeMapper;
+import com.ccm.service.DetailCodeService;
+import com.ccm.vo.CmmnCodeVO;
+import com.ccm.vo.DetailCodeVO;
 import com.spm.service.GoodsService;
+import com.spm.service.ReplyService;
 import com.spm.utils.Criteria;
 import com.spm.utils.PageDTO;
+import com.spm.vo.AttachFileVO;
 import com.spm.vo.CartVO;
-import com.spm.vo.CategoryVO;
 import com.spm.vo.GoodsVO;
 import com.spm.vo.MemberVO;
 import com.spm.vo.OrderDetailVO;
 import com.spm.vo.OrderListVO;
 import com.spm.vo.OrderVO;
 
+import net.sf.json.JSON;
 import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 
 @Controller
 @RequestMapping("/goods/*")
 public class GoodsController {
 
-	@Resource(name="goodsService")
+	@Resource
 	private GoodsService goodsService;
+
+	@Resource
+	private ReplyService replyService;
 	
-	@Resource(name="uploadPath")
-	private String uploadPath;
+	@Resource
+	private DetailCodeService detailCodeService;
+	
+	@Resource
+	private CmmnCodeMapper cmmnCodeMapper;
 	
 	//상품리스트
 	@RequestMapping("/goods")
@@ -50,8 +67,20 @@ public class GoodsController {
 	
 	//상세보기
 	@RequestMapping("/detail")
-	public ModelAndView detail(GoodsVO vo,@RequestParam("gdsNo") int gdsNo) {
+	public ModelAndView detail(@RequestParam("gdsNo") int gdsNo) {
 		ModelAndView mav = new ModelAndView();
+		//리뷰 댓글마다 달린 점수의 총 합
+		int score = replyService.getScore(gdsNo);
+		//리뷰댓글 수
+		int replyCnt = goodsService.getReplyCnt(gdsNo);
+		//평점
+		int sumScore;
+		if(score == 0 || replyCnt == 0) {
+			sumScore = 0;
+		} else {
+			sumScore = score / replyCnt;
+		}
+		mav.addObject("score",sumScore);
 		mav.addObject("goods",goodsService.detail(gdsNo));
 		mav.setViewName("/goods/detail");
 		return mav;
@@ -59,11 +88,32 @@ public class GoodsController {
 	
 	// 등록하러가기
 	@RequestMapping("/register")
-	public ModelAndView goRegister() {
+	public ModelAndView goRegister(HttpSession session)  {
+		MemberVO member = (MemberVO) session.getAttribute("member");
 		ModelAndView mav = new ModelAndView();
-		List<CategoryVO> category = null;
-		category = goodsService.category();
-		mav.addObject("category",JSONArray.fromObject(category));
+		// 하위 상품 분류
+		String goods = "goods";
+		DetailCodeVO detailCodeVO = new DetailCodeVO();
+		CmmnCodeVO cmmnCodeVO = new CmmnCodeVO();
+		cmmnCodeVO.setListType(goods);
+		detailCodeVO.setListType(goods);
+		List<CmmnCodeVO> cmmnCodeList = null;
+		List<DetailCodeVO> cmmnDetailCodeList = null;
+		if(member != null) {
+			if("admin".equals(member.getAuth())) {
+				cmmnCodeList = cmmnCodeMapper.cmmnCodeList(cmmnCodeVO);
+				cmmnDetailCodeList = detailCodeService.cmmnDetailCodeList(detailCodeVO);
+				mav.addObject("cmmnCodeList", cmmnCodeList);
+				mav.addObject("detailCodeList", JSONArray.fromObject(cmmnDetailCodeList));
+			} else if("user".equals(member.getAuth())) {
+				mav.addObject("auth","권한이없습니다.");
+				mav.addObject("url","/");
+			}
+		} else  {
+			mav.addObject("auth","권한이없습니다.");
+			mav.addObject("url","/member/login");
+		}
+		
 		mav.setViewName("/goods/register");
 		return mav;
 	}
@@ -72,10 +122,9 @@ public class GoodsController {
 	@RequestMapping("/insert")
 	public ModelAndView insert(GoodsVO vo) throws  Exception {
 		ModelAndView mav = new ModelAndView();
-		
 		String result = "";			// 결과
-		int cnt = goodsService.insert(vo);
-		if(cnt > 0 ) {
+	
+		if(goodsService.insert(vo)) {
 			result = "success";
 			mav.addObject("result",result);
 		} else {
@@ -88,9 +137,20 @@ public class GoodsController {
 	
 	//상품 수정하러 가기
 	@RequestMapping("/modify")
-	public ModelAndView modify(GoodsVO vo,@RequestParam("gdsNo") int gdsNo) {
+	public ModelAndView modify(GoodsVO vo,@RequestParam("gdsNo") int gdsNo,HttpSession session) {
 		ModelAndView mav = new ModelAndView();
-		mav.addObject("goods",goodsService.detail(gdsNo));
+		MemberVO member = (MemberVO) session.getAttribute("member");
+		if(member != null) {
+			if("admin".equals(member.getAuth())) {
+				mav.addObject("goods",goodsService.detail(gdsNo));
+			} else if("user".equals(member.getAuth())) {
+				mav.addObject("auth","권한이없습니다.");
+				mav.addObject("url","/");
+			}
+		} else  {
+			mav.addObject("auth","권한이없습니다.");
+			mav.addObject("url","/member/login");
+		}
 		mav.setViewName("/goods/modify");
 		return mav;
 	}
@@ -144,6 +204,7 @@ public class GoodsController {
 		List<CartVO> cartList = goodsService.cartList(member.getMberId());
 		mav.addObject("cartList",cartList);
 		mav.setViewName("/goods/cartList");
+		mav.addObject("member",member);
 		return mav;
 	}
 	
@@ -203,6 +264,18 @@ public class GoodsController {
 	@RequestMapping({"/men/menDetailAjax","/women/womenDetailAjax","/kids/kidsDetailAjax"})
 	public ModelAndView detailAjax(GoodsVO vo,@RequestParam("gdsNo") int gdsNo) {
 		ModelAndView mav = new ModelAndView();
+		//리뷰 댓글마다 달린 점수의 총 합
+		int score = replyService.getScore(gdsNo);
+		//리뷰댓글 수	
+		int replyCnt = goodsService.getReplyCnt(gdsNo);
+		//평점
+		int sumScore;
+		if(score == 0 || replyCnt == 0) {
+			sumScore = 0;
+		} else {
+			sumScore = score / replyCnt;
+		}
+		mav.addObject("score",sumScore);
 		mav.addObject("goods",goodsService.detail(gdsNo));
 		return mav;
 	}
@@ -213,28 +286,39 @@ public class GoodsController {
 		
 		ModelAndView mav = new ModelAndView();
 		MemberVO member = (MemberVO)session.getAttribute("member");
-		
-		Calendar cal = Calendar.getInstance();
-		int year = cal.get(Calendar.YEAR);	
-		String ym = year + new DecimalFormat("00").format(cal.get(Calendar.MONTH)+1);
-		String ymd = ym + new DecimalFormat("00").format(cal.get(Calendar.DATE));	//년/월/일 
-		String subNum ="";
-		for(int i =1; i<=6; i++) {
-			subNum += (int)(Math.random()*10);
+		if(member.getPoint() < order.getAmount()) {
+			mav.addObject("result","fail");
+		} else {
+			Calendar cal = Calendar.getInstance();
+			int year = cal.get(Calendar.YEAR);	
+			String ym = year + new DecimalFormat("00").format(cal.get(Calendar.MONTH)+1);
+			String ymd = ym + new DecimalFormat("00").format(cal.get(Calendar.DATE));	//년/월/일 
+			String subNum =	UUID.randomUUID().toString().replaceAll("-", "").substring(0,6);
+			
+			String orderId = ymd + "_"+subNum; 		// ex) 20210318_random
+					
+			order.setMberId(member.getMberId());
+			order.setOrderId(orderId);
+			goodsService.orderInfo(order);
+			
+			orderDetail.setOrderId(orderId);
+			orderDetail.setMberId(member.getMberId());
+			goodsService.orderInfo_Detail(orderDetail);
+			
+			//상품 수량 조절 
+			List<OrderListVO> orderView = goodsService.orderView(order);
+			GoodsVO goods = new GoodsVO();
+				for(OrderListVO i : orderView) {
+					goods.setGdsNo(i.getGdsNo());
+					goods.setGdsStock(i.getCartStock());
+					goodsService.changeStock(goods);
+			}
+			
+			goodsService.cartAllDelete(member.getMberId());	//장바구니 지우기
+			goodsService.pointUpdate(order);	//주문후 금액변화
+			mav.addObject("result","success");
 		}
-		String orderId = ymd + "_"+subNum; 		// ex) 20210318_random
-				
-		order.setMberId(member.getMberId());
-		order.setOrderId(orderId);
-		goodsService.orderInfo(order);
-		
-		orderDetail.setOrderId(orderId);
-		goodsService.orderInfo_Detail(orderDetail);
-		
-		goodsService.cartAllDelete(member.getMberId());
-	
-		mav.addObject("result","success");
-		mav.setViewName("/goods/cartList");
+			mav.setViewName("/goods/cartList");
 		return mav;
 	}
 	
@@ -245,12 +329,16 @@ public class GoodsController {
 		MemberVO member =  (MemberVO) session.getAttribute("member");
 		order.setMberId(member.getMberId());
 		if("admin".equals(member.getAuth())) {
+			cri.setAmount(5);
 			List<OrderVO> adminList = goodsService.adminList(cri);
 			int total = goodsService.getOrderTotal(cri);
+			mav.addObject("total",total);
 			mav.addObject("pageMaker",new PageDTO(cri, total));
 			mav.addObject("orderList",adminList);
 		} else if("user".equals(member.getAuth())){
 			List<OrderVO> orderList = goodsService.orderList(order);
+			int total = orderList.size();
+			mav.addObject("total",total);
 			mav.addObject("orderList",orderList);
 		}
 		mav.setViewName("/goods/orderList");
@@ -259,16 +347,9 @@ public class GoodsController {
 	
 	//주문한 상품번호에 따른 목록보기
 	@RequestMapping("/orderView")
-	public ModelAndView orderView(HttpSession session,OrderVO order,@RequestParam("orderId") String orderId,@RequestParam("mberId") String mberId) {
+	public ModelAndView orderView(OrderVO order,@RequestParam("orderId") String orderId,@RequestParam("mberId") String mberId) {
 		ModelAndView mav = new ModelAndView();
-		MemberVO member = (MemberVO)session.getAttribute("member");
-		if("admin".equals(member.getAuth())) {
-			order.setMberId(mberId);
-			order.setOrderId(orderId);
-		} else if("user".equals(member.getAuth())) {
-			order.setMberId(member.getMberId());
-			order.setOrderId(orderId);
-		}
+		order.setOrderId(orderId);
 		List<OrderListVO> orderView = goodsService.orderView(order);
 		
 		mav.addObject("orderView",orderView);
@@ -281,6 +362,22 @@ public class GoodsController {
 	public ModelAndView delivery(OrderVO vo) {
 		ModelAndView mav = new ModelAndView();
 		int cnt = goodsService.delivery(vo);
+		OrderVO order = new OrderVO();
+		//상품 수량 조절 
+		if("주문취소완료".equals(vo.getDelivery())) {
+			List<OrderListVO> orderView = goodsService.orderView(vo);
+			GoodsVO goods = new GoodsVO();
+				for(OrderListVO i : orderView) {
+					goods.setGdsNo(i.getGdsNo());
+					goods.setGdsStock(-(i.getCartStock()));
+					goodsService.changeStock(goods);
+				}
+				
+				order.setAmount(-(vo.getAmount()));		//주문취소후 금액변화
+				order.setMberId(vo.getMberId());		
+				goodsService.pointUpdate(order);	//주문취소후 금액변화
+			}
+		
 		String result ="";
 		if(cnt >0) {
 			result ="success";
@@ -292,4 +389,13 @@ public class GoodsController {
 			mav.setViewName("jsonView");
 		return mav;
 	}
+	
+	//사진 목록 가져오기
+	@RequestMapping(value = "/getAttachList", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+	@ResponseBody //서버와 클라이언트 간 통신 역할
+	public ResponseEntity<List<AttachFileVO>> fileList(int gdsNo){
+		return new ResponseEntity<>(goodsService.fileList(gdsNo),HttpStatus.OK);
+	}
+	
+	
 }

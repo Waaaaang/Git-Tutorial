@@ -28,4 +28,10 @@ public class OrderListVO {
 	private String gdsName;		//상품이름
 	private String gdsImg;		//상품이미지
 	private int gdsPrice;		//상품가격
+	
+	private String fileId;			//파일아이디
+	private String uploadPath;			//파일업로드
+	private String fileName;			//파일이름
+	
+	private int replyCnt; 		//댓글수
 }

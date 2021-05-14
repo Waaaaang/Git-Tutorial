@@ -33,4 +33,7 @@ public interface MemberService {
 	
 	//회원정보수정
 	public boolean updateMember(MemberVO vo);
+	
+	//충전
+	public int charge(MemberVO vo);
 }

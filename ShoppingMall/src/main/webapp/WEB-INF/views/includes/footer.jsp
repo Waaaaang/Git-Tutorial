@@ -13,7 +13,7 @@ footer {
 
 	
 	<footer>
-	<div>ShoppingMall</div>
+	<div>VTEX SHOP</div>
 	</footer>
 	
 	</body>

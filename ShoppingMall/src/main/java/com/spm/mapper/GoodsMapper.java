@@ -2,6 +2,8 @@ package com.spm.mapper;
 
 import java.util.List;
 
+import org.apache.ibatis.annotations.Param;
+
 import com.spm.utils.Criteria;
 import com.spm.vo.CartVO;
 import com.spm.vo.CategoryVO;
@@ -71,5 +73,18 @@ public interface GoodsMapper {
 	
 	//배송 상태
 	public int delivery(OrderVO vo);
+	
+	//배송 후 상품 수량 조절
+	public void changeStock(GoodsVO vo);
+	
+	//gdsNo : 상품 번호 , amount : 증가, 감소 의미하는 변수
+	//댓글 수 업데이트
+	public void updateReplyCnt(@Param("gdsNo") int gdsNo, @Param("amount") int amount); 
+		
+	//댓글 수
+	public int getReplyCnt(int gdsNo);
+	
+	//주문후 금액변화
+	public void pointUpdate(OrderVO vo);
 	
 }

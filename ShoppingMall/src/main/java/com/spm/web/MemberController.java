@@ -1,5 +1,7 @@
 package com.spm.web;
 
+import java.util.List;
+
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -7,9 +9,12 @@ import javax.servlet.http.HttpSession;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
+import com.ccm.service.DetailCodeService;
+import com.ccm.vo.DetailCodeVO;
 import com.spm.service.MemberService;
 import com.spm.vo.MemberVO;
 
@@ -17,8 +22,11 @@ import com.spm.vo.MemberVO;
 @RequestMapping("/member/*")
 public class MemberController {
 
-	@Resource(name="memberService")
+	@Resource
 	private MemberService memberService;
+	
+	@Resource
+	private DetailCodeService detailCodeService;
 	
 	//회원가입 jsp
 	@RequestMapping("/register")
@@ -190,11 +198,17 @@ public class MemberController {
 	
 	//마이페이지
 	@RequestMapping("/myPage")
-	public ModelAndView myPage(MemberVO vo,HttpSession session) {
+	public ModelAndView myPage(HttpSession session) {
 		ModelAndView mav = new ModelAndView();
-		MemberVO member = (MemberVO)session.getAttribute("member");
-		mav.addObject("member",memberService.myPage(member.getMberId()));
-		mav.setViewName("/member/myPage");
+		
+		if(session.getAttribute("member") == null) {
+			mav.setViewName("/member/login");
+		} else {
+			MemberVO vo = (MemberVO)session.getAttribute("member");
+			MemberVO member = memberService.myPage(vo.getMberId());
+			session.setAttribute("member", member);
+			mav.setViewName("/member/myPage");
+		}
 		return mav;
 	}
 	
@@ -227,4 +241,37 @@ public class MemberController {
 		}
 	}
 	
+	@RequestMapping("/charge")
+	public ModelAndView charge(HttpSession session) {
+		ModelAndView mav = new ModelAndView();
+		MemberVO member = (MemberVO)session.getAttribute("member");
+		// 하위 상품 분류
+		String money = "money";
+		DetailCodeVO detailCodeVO = new DetailCodeVO();
+		detailCodeVO.setCode_Id(money);
+		List<DetailCodeVO> cmmnDetailCodeList = detailCodeService.cmmnDetailCodeList(detailCodeVO);
+		mav.addObject("detailCodeList", cmmnDetailCodeList);
+		mav.addObject("member",member);
+		mav.setViewName("/member/charge");
+		return mav;
+	}
+	
+	@RequestMapping("point")
+	public ModelAndView point(@RequestParam("amount") int amount,@RequestParam("mberId") String mberId) {
+		ModelAndView mav = new ModelAndView();
+		MemberVO vo = new MemberVO();
+		vo.setPoint(amount);
+		vo.setMberId(mberId);
+		String result="";
+		int charge = memberService.charge(vo);
+		if(charge > 0 ) {
+			result = "success";
+			mav.addObject("result",result);
+		} else {
+			result = "fail";
+			mav.addObject("result",result);
+		}
+		mav.setViewName("jsonView");
+		return mav;
+	}
 }

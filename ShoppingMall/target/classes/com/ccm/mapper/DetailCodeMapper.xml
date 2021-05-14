@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+  <mapper namespace="com.ccm.mapper.DetailCodeMapper">
+  <!-- 코드목록 -->
+  	<select id="list" resultType="com.ccm.vo.DetailCodeVO">
+  	 	<![CDATA[
+  		select 
+  			T.*
+  		from 
+  			(
+  				select
+  					rownum AS rn
+  					,code_Id
+  					,det_Code_Id
+  					,det_Code_Nm
+  					,det_Code_Dc
+  					,sort_Ordr
+  					,use_At
+  					,firstRegDate
+  					,firstRegId
+  					,lastRegDate
+  					,lastRegId
+  				from 
+  					cmmn_detail_code
+  				where 
+  					code_Id = #{code_Id}
+  					and sort_Ordr > 0
+  					and rownum <= #{cri.pageNum} * #{cri.amount}
+  				order by code_Id, sort_Ordr , det_Code_Id
+			) T 
+  	    where 
+  	    	T.rn >  (#{cri.pageNum}-1)*#{cri.amount}
+		]]>
+  	</select>
+  
+  <!-- 코드등록 -->
+  	<insert id="insert">
+  		insert 
+  			into cmmn_detail_code
+  				(
+  					code_Id 
+  					,det_Code_Id
+  					,det_Code_Nm
+  					,det_Code_Dc
+  					,sort_Ordr
+  					,use_At
+  					,firstRegDate
+  					,firstRegId
+  				) 
+  		 	values
+  		 		(	
+  		 			#{code_Id}
+  		 			,#{det_Code_Id}
+  		 			,#{det_Code_Nm}
+  		 			,#{det_Code_Dc}
+  		 			,#{sort_Ordr}
+  		 			,#{use_At}
+  		 			,sysdate
+  		 			,#{mberId}
+  		 		)
+  	</insert>
+  		
+  <!-- 코드상세 -->
+  	<select id="detail" resultType="com.ccm.vo.DetailCodeVO">
+  		select  
+  			c.code_Id
+  			,c.code_Nm 
+  			,d.det_Code_Id
+  			,d.det_Code_Nm
+ 			,d.det_Code_Dc
+  			,d.sort_Ordr
+  			,d.use_At
+  			,d.firstRegDate
+  			,d.firstRegId
+  		from 
+  			cmmn_code c
+  			left outer join cmmn_detail_code d on c.code_Id = d.code_Id
+  		where 
+  			d.det_Code_Id = #{det_Code_Id}
+  	</select>
+  
+  <!-- 코드삭제 -->
+  	<update id="delete">
+  		update 
+  			cmmn_detail_code
+  		set
+  			use_At=#{use_At}
+  			,lastRegDate=sysdate
+  			,lastRegId=#{mberId}
+  		where 
+  			det_Code_Id = #{det_Code_Id}
+  	</update>
+  	
+  	<!-- 코드수정 -->
+  	<update id="update">
+  		update
+  		 	cmmn_detail_code
+  		set 
+  			det_Code_Id=#{det_Code_Id}
+  			,det_Code_Nm=#{det_Code_Nm}
+  			,det_Code_Dc=#{det_Code_Dc}
+  			,use_At=#{use_At}
+  			,lastRegDate=sysdate
+  			,lastRegId=#{mberId}
+  		where 
+  			det_Code_Id=#{det_Code_Id}
+  	</update>
+  	
+  	<!-- 총 코드 수 -->
+  	<select id="getTotal" resultType="int">
+  		select 
+  			count(det_Code_Id)
+  		from 
+  			cmmn_detail_code
+  		where
+  			code_Id =#{code_Id}
+  	</select>
+  	
+   <!--  코드 중복 체크 -->
+  <select id="detailCodeCheck" parameterType="com.ccm.vo.DetailCodeVO" resultType="int">
+  		select 
+  			count(*) 
+  		from 
+  			cmmn_detail_code
+  		where 
+  			det_Code_Id=#{det_Code_Id}
+   </select>
+   
+	<!--   정렬순서 중복검사 -->
+  <select id="sortCheck" parameterType="com.ccm.vo.DetailCodeVO" resultType="int">
+  		select 
+  			count(*) 
+  		from 
+  			cmmn_detail_code
+  		where 
+  			sort_Ordr=#{sort_Ordr} and code_Id=#{code_Id}
+   </select>
+   
+   <!-- 코드ID select -->
+   <select id="codeList" resultType="com.ccm.vo.CmmnCodeVO">
+   		select 
+   			code_Id
+  			,code_Nm
+  			,code_Dc
+  			,use_At
+  			,firstRegDate
+  			,firstRegId
+  			,lastRegDate
+  			,lastRegId
+  		from 
+  			cmmn_code
+  		where use_At = 'Y'
+  		order by 
+  			code_Id, code_Nm
+   </select>
+   
+   <!--  공통상세코드 목록 -->
+  <select id="cmmnDetailCodeList" parameterType="com.ccm.vo.DetailCodeVO" resultType="com.ccm.vo.DetailCodeVO">
+		select
+			a.code_Id
+			,a.code_Nm
+			,b.det_Code_Id
+			,b.det_Code_Nm
+			,b.sort_Ordr
+		from 
+			cmmn_code a
+			left outer join cmmn_detail_code b on b.code_Id = a.code_Id 
+		where
+			1 = 1
+			and a.use_At = 'Y'
+			and b.use_At = 'Y'
+			<choose>
+				<when test="listType == 'goods'">
+					AND REGEXP_LIKE(a.code_Id, '^[[:digit:]]+$')	<!-- 공통코드 id가 숫자인경우는 상품 대분류로 인식 -->
+				</when>
+				<otherwise>
+					AND a.code_Id = #{code_Id}
+				</otherwise>
+			</choose>
+		order by a.code_Id , b.sort_Ordr, b.det_code_Id
+   </select>
+   
+  	
+</mapper>

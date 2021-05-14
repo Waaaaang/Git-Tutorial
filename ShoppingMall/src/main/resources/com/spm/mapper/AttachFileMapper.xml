@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+  <mapper namespace="com.spm.mapper.AttachFileMapper">
+  
+  	<insert id="insert">
+  		insert 
+  			into goods_file (fileId,uploadPath,fileName,fileType) 
+  				values (#{fileId},#{uploadPath},#{fileName},#{fileType})
+  	</insert>
+  	
+  	<delete id="delete">
+  		delete 
+  			from goods_file
+  				where fileId = #{fileId}
+  	</delete>
+  
+  	<select id="fileList" resultType="com.spm.vo.AttachFileVO">
+  		select f.fileId,uploadPath,fileName,fileType,gdsNo 
+  			from goods_file f inner join goods g on f.fileId = g.fileId
+  				where g.gdsNo = #{gdsNo}
+  	</select>
+  	
+  	<delete id="deleteAll">
+  		delete  
+  			from goods_file f 
+                where f.fileId = (
+                    select g.fileId
+                        from goods g
+                            where g.fileId = f.fileId
+                                and g.gdsNo =#{gdsNo} ) 
+  	</delete>
+  	
+  </mapper>
+  

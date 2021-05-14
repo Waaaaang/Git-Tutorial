@@ -6,9 +6,11 @@ import javax.annotation.Resource;
 
 import org.springframework.stereotype.Service;
 
+import com.spm.mapper.AttachFileMapper;
 import com.spm.mapper.GoodsMapper;
 import com.spm.service.GoodsService;
 import com.spm.utils.Criteria;
+import com.spm.vo.AttachFileVO;
 import com.spm.vo.CartVO;
 import com.spm.vo.CategoryVO;
 import com.spm.vo.GoodsVO;
@@ -19,8 +21,11 @@ import com.spm.vo.OrderVO;
 @Service("goodsService")
 public class GoodsServiceImpl implements GoodsService {
 
-	@Resource(name="goodsMapper")
-	GoodsMapper goodsMapper;
+	@Resource
+	private GoodsMapper goodsMapper;
+	
+	@Resource
+	private AttachFileMapper fileMapper;
 	
 	//상품 목록
 	@Override
@@ -30,19 +35,36 @@ public class GoodsServiceImpl implements GoodsService {
 
 	//상품등록
 	@Override
-	public int insert(GoodsVO vo) {
-		return goodsMapper.insert(vo);
+	public boolean insert(GoodsVO vo) {
+		if(vo.getAttachList() == null || vo.getAttachList().size() <= 0) {
+			return false;
+		}
+		vo.getAttachList().forEach(attach -> {
+			attach.setGdsNo(vo.getGdsNo());
+			vo.setFileId(attach.getFileId());
+			fileMapper.insert(attach);
+		});
+		return goodsMapper.insert(vo) == 1;
 	}
 
 	//상품삭제
 	@Override
 	public boolean delete(int gdsNo) {
+		fileMapper.deleteAll(gdsNo);
 		return goodsMapper.delete(gdsNo) == 1;
 	}
 	
 	//상품수정
 	@Override
 	public boolean update(GoodsVO vo) {
+		fileMapper.deleteAll(vo.getGdsNo()); 
+		if(vo.getAttachList() != null && vo.getAttachList().size() > 0) {
+			vo.getAttachList().forEach(attach -> {
+				attach.setGdsNo(vo.getGdsNo());
+				vo.setFileId(attach.getFileId());
+				fileMapper.insert(attach);
+			});
+		}
 		return goodsMapper.update(vo) == 1;
 	}
 
@@ -141,7 +163,29 @@ public class GoodsServiceImpl implements GoodsService {
 	public int delivery(OrderVO vo) {
 		return goodsMapper.delivery(vo);
 	}
-
 	
+	//배송 후 상품 수량 조절
+	@Override
+	public void changeStock(GoodsVO vo) {
+		goodsMapper.changeStock(vo);		
+	}
+	
+	//첨부된 사진 목록
+	@Override
+	public List<AttachFileVO> fileList(int gdsNo) {
+		return fileMapper.fileList(gdsNo);
+	}
+
+	// 총 리뷰댓글 수
+	@Override
+	public int getReplyCnt(int gdsNo) {
+		return goodsMapper.getReplyCnt(gdsNo);
+	}
+	
+	//주문후 금액변화
+	@Override
+	public void pointUpdate(OrderVO vo) {
+		goodsMapper.pointUpdate(vo);
+	}
 
 }

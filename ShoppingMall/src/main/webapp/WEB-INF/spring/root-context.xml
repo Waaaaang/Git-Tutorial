@@ -14,10 +14,12 @@
 	
 <!-- Root Context: defines shared resources visible to all other web components -->
 	<context:component-scan base-package="com.spm.service"></context:component-scan>
+	<context:component-scan base-package="com.ccm.service"></context:component-scan>
 	
 	<context:annotation-config></context:annotation-config>
 	
 	<mybatis-spring:scan base-package="com.spm.mapper"/>
+	<mybatis-spring:scan base-package="com.ccm.mapper"/>
 	
 	<bean id="hikariConfig" class="com.zaxxer.hikari.HikariConfig">
 		<property name="driverClassName" value="net.sf.log4jdbc.sql.jdbcapi.DriverSpy"></property> 

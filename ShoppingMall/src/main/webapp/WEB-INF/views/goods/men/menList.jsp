@@ -13,8 +13,6 @@
 		
 		goListMen();
 		
-	
-		
 		//글 상세보기 이동
 		$(document).on("click",'.move',function(e){
 			e.preventDefault();
@@ -49,6 +47,7 @@
 			url : "/goods/men/men",
 			data : datas,
 			success : function(data){
+				console.log(data);
 				$("#listDiv").empty();
 				$("#listDiv").html(data);
 			},

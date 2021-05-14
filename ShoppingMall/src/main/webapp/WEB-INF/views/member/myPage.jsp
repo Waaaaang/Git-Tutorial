@@ -5,6 +5,14 @@
 <%@ include file="../includes/header.jsp"%>
 
 
+<style>
+	section#content ul li { border:5px solid #eee; padding:10px 20px; margin-bottom:20px; list-style: none;}
+	section#content ul li p {text-align: left;}
+ 	section#content .orderList span { font-size:20px; font-weight:bold; display:inline-block; width:120px; margin-right:10px; }
+ 	
+ 	#myPage label {width: 100px; }
+</style>
+
 	<div class="container">
 		<div class="row">
 			<div class="col-sm-12">
@@ -12,6 +20,10 @@
 				<div class="col-sm-9">
 					<h2 class="text-center">마이페이지</h2>
 					<table class="table table-striped">
+						<colgroup>
+							<col width="100px;">
+							<col width="*">
+						</colgroup>
 						<tr>
 							<td>이름</td>
 							<td>${member.name }</td>
@@ -23,6 +35,11 @@
 						<tr>
 							<td>이메일</td>
 							<td>${member.email }</td>
+						</tr>
+						<tr>
+							<td>충전금액</td>
+							<td><fmt:formatNumber pattern="###,###,###" value="${member.point }"></fmt:formatNumber> 원 </td>
+							
 						</tr>
 						<tr>
 							<td>핸드폰</td>
@@ -38,6 +55,7 @@
 						</tr>
 						<tr>
 							<td class="text-center" colspan="2">
+								<button class="btn btn-info" onclick="charge();">충전하기</button> 
 								<button class="btn btn-success" onclick="order();">주문확인</button>
 								<button class="btn btn-primary" onclick="check();">회원정보수정</button>
 								<button class="btn btn-warning" onclick="main();">메인화면</button>
@@ -50,16 +68,16 @@
 						<input type="password" id="pw" >
 						<button type="button" onclick="pwCheck();">확인</button>
 					</div>
-					<div class="text-center" id="myPageModify" style="display: none">
-						<form>
+					<div id="myPageModify" style="display: none">
+						<form id="myPage">
 							<div>
-								<label>이름</label><p><c:out value="${member.name }"/></p>
+								<label>이름</label><span><c:out value="${member.name }"/></span>
 							</div>
 							<div>
-								<label>아이디</label><p><c:out value="${member.mberId }"/></p>
+								<label>아이디</label><span><c:out value="${member.mberId }"/></span>
 							</div>
 							<div>
-								<label>이메일</label><p><c:out value="${member.email }"/></p>
+								<label>이메일</label><span><c:out value="${member.email }"/></span>
 							</div>
 							<div>
 								<label>비밀번호</label><input type="password" id="password"  >
@@ -73,6 +91,7 @@
 							<div>
 								<label>상세주소</label><input id="detailAddr" value='<c:out value="${member.detailAddr }"/>'>
 							</div>
+							<br>
 							<button type="button" onclick="myPageModify()">수정하기</button>
 							<button type="button" onclick="esc();">취소</button>
 						</form>
@@ -84,6 +103,17 @@
 		</div>
 	</div>
 <script>
+
+	//충전하기
+	function charge(){
+		var url = "/member/charge";
+		var winWidth = 1000;
+		var winHeight = 700;
+		var popupOption = "width="+winWidth+", height="+winHeight;
+		window.open(url,"충전하기",popupOption);
+	}
+
+
 	//주문리스트
 	function order(){
 		$.ajax({
@@ -92,9 +122,9 @@
 			success : function(data){
 				var result = $("#orderList").html(data).find("section");
 				$("#orderList").empty();
-				$("#orderList").slideDown();
 				$("#pwCheck").slideUp();
 				$("#myPageModify").slideUp();
+				$("#orderList").slideDown();
 				$("#orderList").html(result);
 				
 			},
@@ -152,6 +182,7 @@
 	}
 
 	function check(){
+		$("#pw").val("");
 		$("#orderList").slideUp();
 		$("#pwCheck").slideDown();
 	};

@@ -22,6 +22,7 @@ public class MemberVO {
 	private Date lastRegDate;		//최종수정일
 	private String lastRegId;		//최종등록자
 	private String auth;			//권한
+	private int point;				//충전금액
 	
 	
 

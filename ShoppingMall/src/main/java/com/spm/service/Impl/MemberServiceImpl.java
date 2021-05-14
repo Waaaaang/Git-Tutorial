@@ -12,7 +12,7 @@ import com.spm.vo.MemberVO;
 public class MemberServiceImpl implements MemberService {
 
 	@Resource(name="memberMapper")
-	MemberMapper memberMapper;
+	private MemberMapper memberMapper;
 	
 	//회원가입
 	@Override
@@ -73,6 +73,12 @@ public class MemberServiceImpl implements MemberService {
 	@Override
 	public boolean updateMember(MemberVO vo) {
 		return memberMapper.updateMember(vo) == 1;
+	}
+
+	//충전
+	@Override
+	public int charge(MemberVO vo) {
+		return memberMapper.charge(vo);
 	}
 
 	

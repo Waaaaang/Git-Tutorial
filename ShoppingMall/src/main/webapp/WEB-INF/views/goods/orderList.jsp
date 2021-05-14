@@ -5,11 +5,11 @@
 <%@ include file="../includes/header.jsp"%>
 <style>
  	section#content ul li { border:5px solid #eee; padding:10px 20px; margin-bottom:20px; list-style: none;}
- 	section#content .orderList span { font-size:20px; font-weight:bold; display:inline-block; width:90px; margin-right:10px; }
+ 	section#content .orderList span { font-size:20px; font-weight:bold; display:inline-block; width:120px; margin-right:10px; }
 </style>
 <section id="content">
- 
  <ul class="orderList">
+ 	<div style="text-align: left; margin-bottom : 10px; font-size:20px; font-weight:bold;">총 ${total }건</div>
   <c:forEach items="${orderList}" var="orderList">
   	<li>
   	<div>
@@ -28,7 +28,29 @@
    		<p><span>수령인</span>${orderList.orderRec}</p>
    		<p><span>주소</span>${orderList.addr1} ${orderList.detailAddr} </p>
    		<p><span>가격</span><fmt:formatNumber pattern="###,###,###" value="${orderList.amount}" /> 원</p>
-   		<p><span>상태</span>${orderList.delivery }</p>   
+   		<p><span>상태</span>
+   			<span style="color:
+	     	<c:choose>
+	     		<c:when test='${orderList.delivery eq "배송준비"}'>
+	     			red
+	     		</c:when>
+	     		<c:when test='${orderList.delivery eq "배송 중"}'>
+	     			blue
+	     		</c:when>
+	     		 <c:when test='${orderList.delivery eq "배송 완료"}'>
+	     			gray
+	     		</c:when>
+	     		 <c:when test='${orderList.delivery eq "주문취소요청"}'>
+	     			green
+	     		</c:when>
+	     		 <c:when test='${orderList.delivery eq "주문취소"}'>
+	     			yellow
+	     		</c:when>
+	     	</c:choose>
+     		">
+	     	${orderList.delivery}		
+	     </span>
+   		</p>   
    		
   </div>
   </li>
@@ -62,4 +84,5 @@ $(".paginate_button a").on("click",function(e){
 	actionForm.attr("method","post");
 	actionForm.submit();
 });
+
 </script>

@@ -12,4 +12,5 @@ public class OrderDetailVO {
 	   private String orderId;		//주문 번호
 	   private int gdsNo;			//상품 번호
 	   private int cartStock;		//수량
+	   private String mberId;
 }

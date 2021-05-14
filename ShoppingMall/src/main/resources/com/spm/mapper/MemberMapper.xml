@@ -7,55 +7,79 @@
   
   <!-- 회원가입 -->		
   <insert id="insert">
-  	insert into member (mberNo,mberId,password,name,phone,email,
-  	  addr1,detailAddr,firstRegDate,firstRegId, auth)
-  	 values (member_seq.nextval,#{mberId},#{password},#{name},#{phone},#{email},
-  	  #{addr1},#{detailAddr},sysdate,#{mberId}, #{auth})
+  	insert into member (mberNo,mberId,password,name,phone,email,addr1,detailAddr,firstRegDate,firstRegId, auth) 
+  		values (member_seq.nextval,#{mberId},#{password},#{name},#{phone},#{email},#{addr1},#{detailAddr},sysdate,#{mberId}, #{auth})
   </insert>
   
   <!--  아이디 중복 체크 -->
   <select id="mberIdCheck" parameterType="com.spm.vo.MemberVO" resultType="int">
-  	select count(*) from member where mberId = #{mberId}
+  	select count(*) 
+  		from member 
+  			where mberId = #{mberId}
   </select>
   
   <!--  이메일 중복 체크 -->
   <select id="emailCheck" parameterType="com.spm.vo.MemberVO" resultType="int">
-  	select count(*) from member where email = #{email}
+  	select count(*) 
+  		from member 
+  			where email = #{email}
   </select>
   
   <!-- 아이디 찾기 -->
   <select id="findId" resultType="String">
-  	select mberId from member where email =#{email}
+  	select mberId 
+  		from member 
+  			where email =#{email}
   </select>
   
   <!-- 비밀번호 찾기 -->
   <select id="findPw" parameterType="com.spm.vo.MemberVO" resultType="String">
-  	select password from member where email =#{email} and mberId =#{mberId}
+  	select password 
+  		from member 
+  			where email =#{email} and mberId =#{mberId}
   </select>
   
   <!-- 비밀번호 변경 -->
   <update id="updatePw" parameterType="com.spm.vo.MemberVO">
-  	update member set password = #{password} where mberId =#{mberId} 
+  	update member 
+  		set password = #{password} 
+  			where mberId =#{mberId} 
   </update>
   
   <!-- 로그인 -->
   <select id="login" resultType="com.spm.vo.MemberVO">
-  		select * from member where mberId=#{mberId} and password=#{password}
+  		select * 
+  			from member 
+  				where mberId=#{mberId} and password=#{password}
   </select>
   
   <!-- 마이페이지 -->
   <select id="myPage" resultType="com.spm.vo.MemberVO">
-   		select * from member where mberId=#{mberId}
+   		select * 
+   			from member 
+   				where mberId=#{mberId}
    </select>
    
    <!-- 회원탈퇴 -->
    <delete id="deleteMember">
-   		delete from member where mberId=#{mberId}
+   		delete from member 
+   			where mberId=#{mberId}
    </delete>
    
    <!-- 회원정보수정 -->
    <update id="updateMember">
-   		update member set password=#{password},phone=#{phone},addr1=#{addr1},detailAddr=#{detailAddr},lastRegDate=sysdate,lastRegId=#{mberId} where mberId=#{mberId}
+   		update member 
+   			set password=#{password},phone=#{phone},addr1=#{addr1},detailAddr=#{detailAddr},lastRegDate=sysdate,lastRegId=#{mberId} 
+   				where mberId=#{mberId}
+   </update>
+   
+   <!-- 주문후 금액 업데이트 -->
+   <update id="charge">
+   		update 
+   			member
+   		set 
+   			point = point + #{point}
+   		where mberId = #{mberId}
    </update>
   
 </mapper>

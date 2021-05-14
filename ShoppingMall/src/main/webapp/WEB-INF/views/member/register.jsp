@@ -5,10 +5,15 @@
 <head>
 <meta charset="UTF-8">
 <title>회원가입</title>
-
-<script
-	src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<style>
+	body {
+		margin: 5px;
+	}
+</style>
 <script>
+
 	
 	var emailCheck = false;
 	var mberIdCheck = false;
@@ -17,7 +22,7 @@
 	var passRegExp = /^[a-zA-Z0-9]{4,12}$/;
 	var emailRegExp = /^[A-Za-z0-9_]+[A-Za-z0-9]*[@]{1}[A-Za-z0-9]+[A-Za-z0-9]*[.]{1}[A-Za-z]{1,3}$/;
 
-	
+	//회원가입 
 	function memberInsert(){
 		var datas = {
 				mberId : $("#mberId").val(),
@@ -44,6 +49,7 @@
 		});
 	}
 	
+	//회원가입전 체크사항
 	function beforeValid(){
 			
 		if($('#name').val() == '' || $('#name').val() == null){
@@ -58,11 +64,6 @@
 		
 		if($('#mberId').val() == '' || $('#mberId').val() == null){
 			alert('아이디를 입력하세요');
-			return false;
-		}
-		
-		if(!idRegExp.test($('#mberId').val())){
-			alert("아이디는 영문 대소문자와 숫자를 포함 4~12자리로 입력해야합니다.");
 			return false;
 		}
 		
@@ -114,30 +115,36 @@
 		memberInsert();
 	}
 	
+	//아이디 중복  체크
 	function checkId(){
 		var mberId = $('#mberId').val();
 		var data = {
 				mberId : mberId
 				}
-		
-		$.ajax({
-			type : "post",
-			url : "/member/mberIdCheck",
-			data : data,
-			success : function(result){
-				if(result != "fail"){
-					alert("중복된 아이디가 없습니다. 사용가능");
-					mberIdCheck = true;
-				} else {
-					alert("중복된 아이디가 있습니다. 사용불가");
-					mberIdCheck = false;
+		if(!idRegExp.test($('#mberId').val())){
+			alert("아이디는 영문 대소문자와 숫자를 포함 4~12자리로 입력해야합니다.");
+			return false;
+		} else {
+			$.ajax({
+				type : "post",
+				url : "/member/mberIdCheck",
+				data : data,
+				success : function(result){
+					if(result != "fail"){
+						alert("중복된 아이디가 없습니다. 사용가능");
+						mberIdCheck = true;
+					} else {
+						alert("중복된 아이디가 있습니다. 사용불가");
+						mberIdCheck = false;
+					}
 				}
-			}
-		});
+			});
+		}
 	};
 	$(document).ready(function(){
 		
 	
+	//이메일 실시간 중복 검사
 	$("#email").on("propertychange change keyup paste input",function(){
 		var email = $("#email").val();
 		var datas = {
@@ -174,7 +181,7 @@
 			<tr>
 				<td>아이디</td>
 				<td><input type="text" name="mberId" id="mberId" placeholder="4~12자 영문,숫자만 입력가능">
-					<button type="button" onclick="checkId();">중복검사</button></td>
+					<button type="button" class="btn btn-info btn-xs" onclick="checkId();">중복검사</button></td>
 			</tr>
 			<tr>
 				<td>비밀번호</td>
@@ -206,8 +213,8 @@
 			<input type="hidden" name="auth" id="auth" value="user"/>
 		</table>
 		<br>
-		<input type="submit" value="회원가입" /> 
-		<input type="reset" value="리셋" />
+		<input type="submit" class="btn btn-success" value="회원가입" /> 
+		<input type="reset" class="btn btn-warning" value="리셋" />
 	</form>
 </body>
 </html>

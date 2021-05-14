@@ -9,12 +9,13 @@
 
 /* Slideshow container */
 * {
-	box-sizing: border-box
+	box-sizing: border-box;
+
 }
 
 body {
 	font-family: Verdana, sans-serif;
-	margin: 0
+	overflow-x: hidden;
 }
 
 /* Slideshow container */
@@ -24,9 +25,10 @@ body {
 }
 
 .main_slideImg {
-	width: 100%;
-	height: 50%;
-	object-fit : cover;
+	width: 750px;
+	object-fit: cover;
+	margin: 0 auto;
+	display: block;
 }
 
 /* Next & previous buttons */
@@ -44,7 +46,7 @@ body {
 	font-size: 18px;
 	transition: 0.6s ease;
 	border-radius: 0 3px 3px 0;
- 	z-index: 100; 
+	z-index: 100;
 }
 
 /* Position the "next button" to the right */
@@ -61,12 +63,13 @@ body {
 /* Caption text */
 .text {
 	color: #f2f2f2;
-	font-size: 15px;
+	font-size: 50px;
 	padding: 8px 12px;
 	position: absolute;
-	bottom: 8px;
+	bottom: 50%;
 	width: 100%;
 	text-align: center;
+	text-shadow: 1px 1px 2px black, 0 0 1em black, 0 0 0.2em white;
 }
 
 /* Number text (1/3 etc) */
@@ -138,7 +141,7 @@ to {
 
 		<img class="main_slideImg" src="/resources/mainImg/1.jpg">
 
-		<div class="text">ShoppingMall</div>
+		<div class="text">VTEX SHOP</div>
 
 	</div>
 
@@ -146,7 +149,7 @@ to {
 
 		<img class="main_slideImg" src="/resources/mainImg/2.jpg">
 
-		<div class="text">ShoppingMall</div>
+		<div class="text">VTEX SHOP</div>
 
 	</div>
 
@@ -154,21 +157,21 @@ to {
 
 		<img class="main_slideImg" src="/resources/mainImg/3.jpg">
 
-		<div class="text">ShoppingMall</div>
+		<div class="text">VTEX SHOP</div>
 
 	</div>
 	<div class="mySlides fade2">
 
 		<img class="main_slideImg" src="/resources/mainImg/4.jpg">
 
-		<div class="text">ShoppingMall</div>
+		<div class="text">VTEX SHOP</div>
 
 	</div>
 	<div class="mySlides fade2">
 
 		<img class="main_slideImg" src="/resources/mainImg/5.jpg">
 
-		<div class="text">ShoppingMall</div>
+		<div class="text">VTEX SHOP</div>
 
 	</div>
 
@@ -178,17 +181,17 @@ to {
 
 <div style="text-align: center">
 
-	<span class="dot" onclick="currentSlide(1)"></span> 
-	<span class="dot" onclick="currentSlide(2)"></span> 
-	<span class="dot" onclick="currentSlide(3)"></span>
-	<span class="dot" onclick="currentSlide(4)"></span>
-	<span class="dot" onclick="currentSlide(5)"></span>
+	<span class="dot" onclick="currentSlide(1)"></span> <span class="dot"
+		onclick="currentSlide(2)"></span> <span class="dot"
+		onclick="currentSlide(3)"></span> <span class="dot"
+		onclick="currentSlide(4)"></span> <span class="dot"
+		onclick="currentSlide(5)"></span>
 </div>
 
 <!-- 메인 슬라이드 End -->
 <script>
 	//슬라이드 스크립
-	
+
 	var slideIndex = 0;
 	showSlides();
 
@@ -197,7 +200,7 @@ to {
 		var i;
 		var slides = document.getElementsByClassName("mySlides");
 		var dots = document.getElementsByClassName("dot");
-	
+
 		for (i = 0; i < slides.length; i++) {
 			slides[i].style.display = "none";
 		}
@@ -205,8 +208,8 @@ to {
 		slideIndex++;
 		if (slideIndex > slides.length) {
 			slideIndex = 1
-		} 
-		
+		}
+
 		for (i = 0; i < dots.length; i++) {
 			dots[i].className = dots[i].className.replace(" active", "");
 		}
@@ -215,7 +218,6 @@ to {
 		dots[slideIndex - 1].className += " active";
 		setTimeout(showSlides, 2000);
 	}
-	
 </script>
 
 <%@ include file="../includes/footer.jsp"%>

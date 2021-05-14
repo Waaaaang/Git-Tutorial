@@ -21,6 +21,8 @@
 
 .orderInfo { border: 3px solid #eee; padding:20px; display: none; }
 
+#order label {width: 100px; }
+
 </style>
 
 <section id="content">
@@ -32,7 +34,7 @@
   <c:forEach items="${cartList}" var="cartList">
   <li>
    <div class="thumb">
-    <img src="/resources/mainImg/${cartList.gdsImg}"   />
+    <img src="/display?fileName=${cartList.uploadPath}/thumb_${cartList.fileId}_${cartList.fileName}">
    </div>
    <div class="gdsInfo">
     <p>
@@ -93,20 +95,23 @@
  		<form id="order" method="post" action="/goods/order">
  			<input type="hidden" name="amount" value="${sum }"/>
  			<div>
- 				<label>수령인</label><input type="text" name="orderRec" id="orderRec" required="required">
+ 				<label>수령인</label><input type="text" name="orderRec" id="orderRec" required="required" value="${member.name }">
  			</div>
  			<div>
- 				<label>연락처</label><input type="text" name="orderPhone" id="orderPhone" required="required">
+ 				<label>연락처</label><input type="text" name="orderPhone" id="orderPhone" required="required" value="${member.phone }">
  			</div>
  			<div>
- 				<label>주소</label><input type="text" name="addr1" id="addr1" required="required">
+ 				<label>주소</label><input type="text" name="addr1" id="addr1" required="required" value="${member.addr1 }">
  			</div>
  			<div>
- 				<label>상세주소</label><input type="text" name="detailAddr" id="detailAddr" required="required">
+ 				<label>상세주소</label><input type="text" name="detailAddr" id="detailAddr" required="required" value="${member.detailAddr }">
  			</div>
  			<div>
- 				<button type="submit">주문</button>
- 				<button type="button" class="cancel">취소</button>
+ 				<label>충전금액</label><fmt:formatNumber pattern="###,###,###" value="${member.point }"/>
+ 			</div>
+ 			<div>
+ 				<button type="submit" class="btn btn-primary">주문</button>
+ 				<button type="button" class="btn btn-danger cancel">취소</button>
  			</div>
  		</form>
  	</div>
@@ -116,6 +121,7 @@
 	$(".order_Btn").click(function(){
 		var sum = '${sum}';
 		if(sum != 0){
+		
 			$(".orderInfo").slideDown();
 			$(".order_Btn").slideUp();
 		} else {
@@ -132,5 +138,13 @@
 	if(result == 'success'){
 		alert("주문완료");
 		location.href="/";
+	} else if(result == 'fail'){
+		alert('금액이 부족합니다.');
+		var cv = confirm("충전하시겠습니까?");
+		if(cv){
+			location.href="/member/myPage";
+		} else {
+			location.href="/goods/cartList";
+		}
 	}
 </script>

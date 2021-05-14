@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+  <mapper namespace="com.ccm.mapper.CmmnCodeMapper">
+  <!-- 코드목록 -->
+  	<select id="list" resultType="com.ccm.vo.CmmnCodeVO">
+  	 	<![CDATA[
+  		select 
+  			T.*
+  		from 
+  			(
+  				select
+  					row_number() over(order by code_Id) as num 
+  					,code_Id
+  					,code_Nm
+  					,code_Dc
+  					,use_At
+  					,firstRegDate
+  					,firstRegId
+  					,lastRegDate
+  					,lastRegId
+  				from 
+  					cmmn_code
+  		]]>   
+ 				<trim prefix="where (" suffix=")" prefixOverrides="OR">
+     				<foreach item='type' collection="typeArr">
+     					<trim prefix="OR">
+     						<choose>	<!-- if ~ else  -->
+     							<when test="type == 'T'.toString()">
+     								code_Id like '%'||#{keyword}||'%'
+     							</when>
+     							<when test="type == 'C'.toString()">
+     								code_Nm like '%'||#{keyword}||'%'
+     							</when>
+     							<when test="type == 'W'.toString()">
+     								code_Dc like '%'||#{keyword}||'%'
+     							</when>
+     						</choose>
+     					</trim>
+     				</foreach>
+   			   </trim>
+ 	    <![CDATA[   
+			) T 
+  	    where 
+  	    	num between ((#{pageNum}-1) * #{amount})+1 and #{pageNum} *#{amount}
+		]]>
+  	</select>
+  
+  <!-- 코드등록 -->
+  	<insert id="insert">
+  		insert 
+  			into cmmn_code 
+  				(
+  					code_Id
+  					,code_Nm
+  					,code_Dc
+  					,use_At
+  					,firstRegDate
+  					,firstRegId
+  				) 
+  		 	values 
+  		 		(
+  		 			#{code_Id}
+  		 			,#{code_Nm}
+  		 			,#{code_Dc}
+  		 			,#{use_At}
+  		 			,sysdate
+  		 			,#{mberId}
+  		 		)
+  	</insert>
+  		
+  <!-- 코드상세 -->
+  	<select id="detail" resultType="com.ccm.vo.CmmnCodeVO">
+  		select  
+  			code_Id
+  			,code_Nm
+  			,code_Dc
+  			,use_At
+  			,firstRegDate
+  			,firstRegId
+  		from 
+  			cmmn_code 
+  		where 
+  			code_Id = #{code_Id}
+  	</select>
+  
+  <!-- 코드삭제 -->
+  	<update id="delete">
+  		update 
+  			cmmn_code
+  		set
+  			use_At=#{use_At}
+  			,lastRegDate=sysdate
+  			,lastRegId=#{mberId}
+  		where 
+  			code_Id = #{code_Id}
+  	</update>
+  	
+  	<!-- 코드수정 -->
+  	<update id="update">
+  		update
+  		 	cmmn_code 
+  		set 
+  			code_Id=#{code_Id}
+  			,code_Nm=#{code_Nm}
+  			,code_Dc=#{code_Dc}
+  			,use_At=#{use_At}
+  			,lastRegDate=sysdate
+  			,lastRegId=#{mberId}
+  		where 
+  			code_Id=#{code_Id}
+  	</update>
+  	
+  	<!-- 총 상품 수 -->
+  	<select id="getTotal" resultType="int">
+  		select 
+  			count(*) as totalCount 
+  		from 
+  			cmmn_code
+  					<trim prefix="(" suffix=") and" prefixOverrides="OR">
+     					<foreach item='type' collection="typeArr">
+     						<trim prefix="OR">
+     							<choose>	<!-- if ~ else  -->
+     								<when test="type == 'T'.toString()">
+     									code_Id like '%'||#{keyword}||'%'
+     								</when>
+     								<when test="type == 'C'.toString()">
+     									code_Nm like '%'||#{keyword}||'%'
+     								</when>
+     								<when test="type == 'W'.toString()">
+     									code_Dc like '%'||#{keyword}||'%'
+     								</when>
+     							</choose>
+     						</trim>
+     					</foreach>
+   			   		</trim>
+  	</select>
+  	
+   <!--  코드 중복 체크 -->
+  <select id="codeCheck" parameterType="com.ccm.vo.CmmnCodeVO" resultType="int">
+  		select 
+  			count(*) 
+  		from 
+  			cmmn_code
+  		where 
+  			code_Id=#{code_Id} 
+   </select>
+   
+  <!--  공통코드 목록 -->
+  <select id="cmmnCodeList" parameterType="com.ccm.vo.CmmnCodeVO" resultType="com.ccm.vo.CmmnCodeVO">
+		select
+			code_Id
+			,code_Nm
+			,use_At
+		from 
+			cmmn_code
+		where
+			1 = 1
+			and use_At = 'Y'
+			<choose>
+				<when test="listType == 'goods'">
+					AND REGEXP_LIKE(code_Id, '^[[:digit:]]+$')	<!-- 공통코드 id가 숫자인경우는 상품 대분류로 인식 -->
+				</when>
+				<otherwise>
+					AND code_Id = #{code_Id}
+				</otherwise>
+			</choose>
+		order by code_Id
+   </select>
+   
+  
+  	
+</mapper>

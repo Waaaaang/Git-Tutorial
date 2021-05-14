@@ -20,4 +20,10 @@ public class CartVO {
 	private String gdsName;			//상품 이름
 	private int gdsPrice;			//상품가격
 	private String gdsImg;			//상품이미지
+	
+	
+	//업로드
+	private String fileId;			//파일아이디
+	private String uploadPath;			//파일업로드
+	private String fileName;			//파일이름
 }

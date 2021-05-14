@@ -7,6 +7,7 @@
 <meta charset="UTF-8">
 <title>아이디 찾기</title>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
 </head>
 <body>
 	<div>
@@ -15,18 +16,20 @@
 				<label>아이디 :</label>
 				<input type="text" name="mberId" id="mberId"><br>
 				<label>이메일 :</label>
-				<input type="text" name="email" id="email"  placeholder="이메일주소를 입력하세요" required><br>
-				<button type="button" onclick="findPw();">비밀번호찾기</button>
-				<button type="button" onclick="history.go(-1)">취소</button>
+				<input type="text" name="email" id="email"  placeholder="이메일주소를 입력하세요" required>
+				<br>
+				<button type="button" class="btn btn-link btn-sm" onclick="findPw();">비밀번호찾기</button>
+				<button type="button" class="btn btn-light btn-sm" onclick="history.go(-1)">취소</button>
 			</form>
 	</div>
+	
 
 <form id="updatePwForm" onsubmit="return beforeValid();" name="updatePwForm" method="post" style="display: none">
 	<div id="pwChange">
 		<label>새 비밀번호 : </label><input type="password" id="password" name="password"/><br>
 		<label>새 비밀번호 확인 :</label><input type="password" id="pw_Check" name="pw_Check"/><br>
 	</div>
-	<button type="submit">비밀번호 변경</button>
+	<button type="submit" class="btn btn-primary btn-sm" >비밀번호 변경</button>
 </form>
 </body>
 
